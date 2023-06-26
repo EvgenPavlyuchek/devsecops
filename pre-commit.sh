@@ -1,7 +1,7 @@
 #!/bin/sh
-# pre-commit github hook + gitleaks
+# Pre-commit Hook with Gitleaks
 ##########################################################################################
-#####                            Install in                                               ####
+#####                            Install                                              ####
 ##########################################################################################
 
 gitleaksWhere() {
@@ -16,7 +16,7 @@ gitleaksWhere() {
         [Yy]* )
           echo "Install..."
           echo "..."
-          curl -so .git/hooks/pre-commit https://raw.githubusercontent.com/evgenpavlyuchek/devsecops/main/pre-commit.sh
+          curl -so .git/hooks/pre-commit https://raw.githubusercontent.com/EvgenPavlyuchek/devsecops/main/pre-commit.sh
           chmod +x .git/hooks/pre-commit
           echo "Installed"
           echo "Now you can use it with: git commit"
