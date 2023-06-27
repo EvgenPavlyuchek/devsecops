@@ -2,13 +2,29 @@
 
 This is a pre-commit script that includes standard pre-commit functions from GitHub, as well as Gitleaks (https://github.com/gitleaks/gitleaks). It can help you check your commits for trailing whitespace and secrets.
 
-# Installation
+# Installation v1 pre-commit.sh
 
 To use the script, run the following command in the root folder of your GitHub project:
    ```
    curl -sSL  https://raw.githubusercontent.com/evgenpavlyuchek/devsecops/main/pre-commit.sh  | sh
    ```
-# Usage
+# Usage v1 pre-commit.sh
+
+The script will automaticly install it in .git/hooks/pre-commit and install Gitleaks, depends of your OS, if you haven't installed it yet. If there are any issues with the installation of Gitleaks within the script, due to the need for additional privileges, you can always install it manually by following the recommendations on the official repository:
+   ```
+   https://github.com/gitleaks/gitleaks
+   ```
+
+Once Gitleaks is installed, you can run the script again, and it will detect the existing Gitleaks installation and show you the results of checking your code.
+
+# Installation v2 pre-commit+interactive.sh
+
+To use the script, run the following command in the root folder of your GitHub project:
+   ```
+   curl -sSL -o pre-commit+interactive.sh https://raw.githubusercontent.com/evgenpavlyuchek/devsecops/main/pre-commit+interactive.sh
+   chmod +x ./pre-commit+interactive.sh
+   ```
+# Usage v2 pre-commit+interactive.sh 
 
 The script will show you the result of the checks or ask you to install Gitleaks, depends of your OS, if you haven't installed it yet. If there are any issues with the installation of Gitleaks within the script, you can always install it manually by following the recommendations on the official repository:
    ```

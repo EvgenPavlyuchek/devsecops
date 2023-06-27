@@ -8,10 +8,26 @@ gitleaksWhere() {
   script_path="$(realpath "$0")"
   hooks_dir="$(dirname "$script_path")"
   if [ "$(basename "$hooks_dir")" != "hooks" ]; then
-    echo "Installing pre-commit gitleaks..."
-    curl -so .git/hooks/pre-commit https://raw.githubusercontent.com/EvgenPavlyuchek/devsecops/main/pre-commit.sh
-    chmod +x .git/hooks/pre-commit
-    echo "Installed pre-commit gitleaks. You can now use it with 'git commit'."
+    echo "Do you want to install pre-commit gitleaks?"
+    echo "(file /.git/hook/pre-commit will be replaced or created) (y/n):"
+    while true; do
+      read -r response
+      case $response in
+        [Yy]* )
+          echo "Install..."
+          echo "..."
+          curl -so .git/hooks/pre-commit https://raw.githubusercontent.com/EvgenPavlyuchek/devsecops/main/pre-commit+interactive.sh
+          chmod +x .git/hooks/pre-commit
+          echo "Installed"
+          echo "Now you can use it with: git commit"
+          break;;
+        [Nn]* )
+          echo "installation stopped"
+          break;;
+        * )
+          echo "Please enter 'y' or 'n'";;
+      esac
+    done
   fi
 }
 
