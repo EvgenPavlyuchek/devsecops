@@ -5,14 +5,8 @@
 ##########################################################################################
 
 gitleaksWhere() {
-  script_path="$(realpath "$0")"
-  hooks_dir="$(dirname "$script_path")"
-  echo $script_path
-  echo $hooks_dir
   script_path="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
   hooks_dir="$(basename "$script_path")"
-  echo $script_path
-  echo $hooks_dir
   if [ "$(basename "$hooks_dir")" != "hooks" ]; then
     echo "Installing pre-commit gitleaks..."
     curl -so .git/hooks/pre-commit https://raw.githubusercontent.com/EvgenPavlyuchek/devsecops/main/pre-commit.sh
@@ -166,7 +160,6 @@ gitleaksUpdate() {
     echo ""
     echo "Gitleaks finished update"
     echo ""
-    gitleaks protect -v --staged --redact
   fi
 }
 
@@ -176,7 +169,6 @@ gitleaksInstalled() {
     gl_version=$(gitleaks version  | cut -d ' ' -f 3)
     gl_install=1
     echo "Gitleaks $gl_version"
-    # gitleaksUpdate
   else
     gl_install=0
     echo "Gitleaks not installed"
@@ -196,6 +188,7 @@ if [ "$(git config hooks.gitleaks)" = "true" ]; then
     echo "Gitleaks finished installation"
     echo ""
   fi
+  # gitleaksUpdate
   gitleaks protect -v --staged --redact --
   if [ $? -ne 0 ]; then
     mistakes=1
