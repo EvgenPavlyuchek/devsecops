@@ -7,6 +7,12 @@
 gitleaksWhere() {
   script_path="$(realpath "$0")"
   hooks_dir="$(dirname "$script_path")"
+  echo $script_path
+  echo $hooks_dir
+  script_path="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+  hooks_dir="$(basename "$script_path")"
+  echo $script_path
+  echo $hooks_dir
   if [ "$(basename "$hooks_dir")" != "hooks" ]; then
     echo "Do you want to install pre-commit gitleaks?"
     echo "(file /.git/hook/pre-commit will be replaced or created) (y/n):"
