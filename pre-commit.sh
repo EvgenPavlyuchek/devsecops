@@ -4,6 +4,7 @@
 #####                            Install                                              ####
 ##########################################################################################
 
+# non-interactive install in .git/hooks/pre-commit
 gitleaksWhere() {
   script_path="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
   hooks_dir="$(basename "$script_path")"
@@ -15,7 +16,44 @@ gitleaksWhere() {
   fi
 }
 
-gitleaksWhere
+# interactive install in .git/hooks/pre-commit
+gitleaksWhereI() {
+  script_path="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+  hooks_dir="$(basename "$script_path")"
+  if [ "$(basename "$hooks_dir")" != "hooks" ]; then
+    echo "Do you want to install pre-commit gitleaks?"
+    echo "(file /.git/hook/pre-commit will be replaced or created) (y/n):"
+    while true; do
+      read -r response
+      case $response in
+        [Yy]* )
+          echo "Install..."
+          echo "..."
+          curl -so .git/hooks/pre-commit https://raw.githubusercontent.com/EvgenPavlyuchek/devsecops/main/pre-commit.sh
+          chmod +x .git/hooks/pre-commit
+          echo "Installed"
+          echo "Now you can use it with: git commit"
+          break;;
+        [Nn]* )
+          echo "installation stopped"
+          break;;
+        * )
+          echo "Please enter 'y' or 'n'";;
+      esac
+    done
+  fi
+}
+
+# Check if script path indicates curl execution
+gitleaksCurl() {
+  if [ "$0" != "sh" ]; then
+    gitleaksWhereI
+  else
+    gitleaksWhere
+  fi
+}
+
+gitleaksCurl
 
 ##########################################################################################
 #####                            Install                                              ####
@@ -34,31 +72,35 @@ mistakes=0
 #
 # To enable this hook, rename this file to "pre-commit".
 
-if git rev-parse --verify HEAD >/dev/null 2>&1
-then
-	against=HEAD
-else
-	# Initial commit: diff against an empty tree object
-	against=$(git hash-object -t tree /dev/null)
-fi
+if [ "$(git config hooks.whitespace)" = "true" ]; then
 
-# If you want to allow non-ASCII filenames set this variable to true.
-allownonascii=$(git config --type=bool hooks.allownonascii)
+  if git rev-parse --verify HEAD >/dev/null 2>&1
+  then
+    against=HEAD
+  else
+    # Initial commit: diff against an empty tree object
+    against=$(git hash-object -t tree /dev/null)
+  fi
 
-# Redirect output to stderr.
-exec 1>&2
+  # If you want to allow non-ASCII filenames set this variable to true.
+  allownonascii=$(git config --type=bool hooks.allownonascii)
 
-# Cross platform projects tend to avoid non-ASCII filenames; prevent
-# them from being added to the repository. We exploit the fact that the
-# printable range starts at the space character and ends with tilde.
-if [ "$allownonascii" != "true" ] &&
-	# Note that the use of brackets around a tr range is ok here, (it's
-	# even required, for portability to Solaris 10's /usr/bin/tr), since
-	# the square bracket bytes happen to fall in the designated range.
-	test $(git diff --cached --name-only --diff-filter=A -z $against |
-	  LC_ALL=C tr -d '[ -~]\0' | wc -c) != 0
-then
-	cat <<\EOF
+  # Redirect output to stderr.
+  exec 1>&2
+
+  # Cross platform projects tend to avoid non-ASCII filenames; prevent
+  # them from being added to the repository. We exploit the fact that the
+  # printable range starts at the space character and ends with tilde.
+
+
+  if [ "$allownonascii" != "true" ] &&
+       # Note that the use of brackets around a tr range is ok here, (it's
+       # even required, for portability to Solaris 10's /usr/bin/tr), since
+       # the square bracket bytes happen to fall in the designated range.
+       test $(git diff --cached --name-only --diff-filter=A -z $against |
+         LC_ALL=C tr -d '[ -~]\0' | wc -c) != 0
+  then
+    cat <<\EOF
 Error: Attempt to add a non-ASCII file name.
 
 This can cause problems if you want to work with people on other platforms.
@@ -69,17 +111,17 @@ If you know what you are doing you can disable this check using:
 
   git config hooks.allownonascii true
 EOF
-	mistakes=1
-fi
+    mistakes=1
+  fi
 
-# If there are whitespace errors, print the offending file names and fail.
-# exec git diff-index --check --cached $against --
 
-echo "=========================================================================================="
+  # If there are whitespace errors, print the offending file names and fail.
+  # exec git diff-index --check --cached $against --
 
-#work with git bash, but don't want with ubuntu wsl
+  echo "=========================================================================================="
 
-if [ "$(git config hooks.whitespace)" = "true" ]; then
+  #work with git bash, but don't want with ubuntu wsl
+
   git diff-index --check --cached $against -- | grep -B1 -E '.*[[:blank:]]$'
   output=$(git diff-index --check --cached $against | grep -E '.*[[:blank:]]$')
   count=$(echo "$output" | grep -c -E '.*[[:blank:]]$')
@@ -139,10 +181,18 @@ gitleaksInstall() {
     # url=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | grep browser_download_url | cut -d '"' -f 4 | grep "${os}_${arch}" | tee /dev/tty)
     powershell -Command "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
     powershell -Command "choco install gitleaks"
+    # powershell -Command "choco uninstall gitleaks"
+    echo "=========================================================================================="
+    echo "In case mistakes run following commands in powershell running with admins rights:"
+    echo "Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
+    echo "choco install gitleaks"
+    echo "=========================================================================================="
   fi
   if [ "$os" = "darwin" ]; then
     # url=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | grep browser_download_url | cut -d '"' -f 4 | grep "${os}_${arch}" | tee /dev/tty)
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     brew install gitleaks
+    # brew uninstall gitleaks
   fi
 }
 
@@ -190,6 +240,7 @@ if [ "$(git config hooks.gitleaks)" = "true" ]; then
   fi
   # gitleaksUpdate
   gitleaks protect -v --staged --redact --
+  echo "=========================================================================================="
   if [ $? -ne 0 ]; then
     mistakes=1
   fi
@@ -202,8 +253,6 @@ fi
 
 # Check if there are errors
 if [ $mistakes -eq 1 ]; then
-: : integer expression expected
-  echo "=========================================================================================="
   echo "Correct errors before proceeding..."
   exit 1
 fi
